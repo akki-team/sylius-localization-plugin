@@ -1,0 +1,34 @@
+{
+  "name": "akki-team/sylius-localization-plugin",
+  "type": "sylius-plugin",
+  "keywords": [
+    "sylius",
+    "sylius-plugin"
+  ],
+  "license": "proprietary",
+  "require": {
+    "php": ">=8.1",
+    "sylius/sylius": "^1.11 || ^1.12 || ^1.13"
+  },
+  "autoload": {
+    "psr-4": {
+      "Akki\\SyliusLocalizationPlugin\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Quentin Briais",
+      "email": "quentin.briais@akki.fr"
+    }
+  ],
+  "config": {
+    "sort-packages": true
+  },
+  "minimum-stability": "dev",
+  "extra": {
+    "symfony": {
+      "allow-contrib": true,
+      "auto-activate-bundles": true
+    }
+  }
+}

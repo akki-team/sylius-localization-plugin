@@ -1,0 +1,11 @@
+<container xmlns="http://symfony.com/schema/dic/services">
+    <services>
+
+        <service class="Akki\SyliusLocalizationPlugin\Command\LoadTranslationsCommand"
+                 id="akki.sylius_localization_plugin.command.load_translations_command">
+            <argument type="service" id="translator.default"/>
+            <tag name="console.command"/>
+        </service>
+
+    </services>
+</container>
