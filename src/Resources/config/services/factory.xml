@@ -1,0 +1,10 @@
+<container xmlns="http://symfony.com/schema/dic/services">
+    <services>
+
+        <service id="akki_sylius_localization_plugin.custom_factory.localized_entry" class="Akki\SyliusLocalizationPlugin\Factory\Localization\LocalizedEntryFactory" decorates="akki_sylius_localization_plugin.factory.localized_entry">
+            <argument type="service" id="akki_sylius_localization_plugin.custom_factory.localized_entry.inner" />
+        </service>
+
+        <service id="Akki\SyliusLocalizationPlugin\Factory\Localization\LocalizedEntryFactoryInterface" alias="akki_sylius_localization_plugin.factory.localized_entry" />
+    </services>
+</container>

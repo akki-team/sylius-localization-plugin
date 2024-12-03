@@ -3,7 +3,13 @@
 
         <service class="Akki\SyliusLocalizationPlugin\Command\LoadTranslationsCommand"
                  id="akki.sylius_localization_plugin.command.load_translations_command">
-            <argument type="service" id="translator.default"/>
+            <argument type="service" id="Sylius\Bundle\ThemeBundle\Translation\ThemeAwareTranslator"/>
+            <argument type="service" id="sylius.repository.locale"/>
+            <argument type="service" id="akki_sylius_localization_plugin.repository.localized_entry"/>
+            <argument type="service" id="sylius.repository.channel"/>
+            <argument type="service" id="akki_sylius_localization_plugin.factory.localized_entry"/>
+            <argument type="service" id="doctrine.orm.entity_manager"/>
+            <argument>%akki_sylius_localization_plugin.model.localized_entry.class%</argument>
             <tag name="console.command"/>
         </service>
 

@@ -1,0 +1,3 @@
+akki_sylius_localization_plugin_admin:
+  resource: '@AkkiSyliusLocalizationPlugin/Resources/config/routes/admin.yaml'
+  prefix: '/%sylius_admin.path_name%'

@@ -13,9 +13,9 @@
             <generator strategy="AUTO"/>
         </id>
 
-        <field name="key" type="string" column="key"/>
+        <field name="key" type="string" column="entry_key"/>
 
-        <field name="domain" type="string" column="domain"/>
+        <field name="domain" type="string" column="entry_domain"/>
 
         <many-to-one field="channel" target-entity="Sylius\Component\Channel\Model\ChannelInterface">
             <join-column name="channel_id" referenced-column-name="id" nullable="true" />

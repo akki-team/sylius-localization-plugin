@@ -1,0 +1,15 @@
+<container xmlns="http://symfony.com/schema/dic/services">
+    <services>
+
+        <service id="Akki\SyliusLocalizationPlugin\Menu\MenuBuilderEventListener">
+            <tag name="kernel.event_listener" event="sylius.menu.admin.main"/>
+        </service>
+
+        <service id="Akki\SyliusLocalizationPlugin\EventListener\ClearLocalizedEntryCacheEventListener">
+            <argument type="service" id="Akki\SyliusLocalizationPlugin\Cache\LocalizedEntryCacheClearerInterface"/>
+            <tag name="kernel.event_listener" event="akki_sylius_localization_plugin.localized_entry.post_create"/>
+            <tag name="kernel.event_listener" event="akki_sylius_localization_plugin.localized_entry.post_update"/>
+        </service>
+
+    </services>
+</container>

@@ -1,0 +1,13 @@
+akki_sylius_localization_plugin:
+  ui:
+    configure_translations_available_in_your_store: Configure the translations available in your store
+    localized_entries: Translations
+    edit_localized_entry: Edit a translation
+    key: Key
+    value: Translation
+    domain: Domain
+  menu:
+    admin:
+      main:
+        configuration:
+          translations: Translations

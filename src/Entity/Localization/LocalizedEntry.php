@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Akki\SyliusLocalizationPlugin\Entity\Localization;
 
-use Sylius\Component\Channel\Model\ChannelAwareInterface;
 use Sylius\Component\Channel\Model\ChannelInterface;
 use Sylius\Component\Resource\Model\TimestampableTrait;
 use Sylius\Component\Resource\Model\TranslatableTrait;
 
-class LocalizedEntry implements LocalizedEntryInterface, ChannelAwareInterface
+class LocalizedEntry implements LocalizedEntryInterface
 {
     use TimestampableTrait;
 
@@ -68,6 +67,17 @@ class LocalizedEntry implements LocalizedEntryInterface, ChannelAwareInterface
     public function setChannel(?ChannelInterface $channel): void
     {
         $this->channel = $channel;
+    }
+
+    public function getValue(string $locale = null): ?string
+    {
+        return $this->getTranslation($locale)->getValue();
+    }
+
+    public function setValue(?string $value, ?string $locale = null): static
+    {
+        $this->getTranslation($locale)->setValue($value);
+        return $this;
     }
 
     protected function createTranslation(): LocalizedEntryTranslationInterface

@@ -1,0 +1,17 @@
+<container xmlns="http://symfony.com/schema/dic/services">
+    <services>
+
+        <service id="akki_sylius_localization_plugin.form.localized_entry_type" class="Akki\SyliusLocalizationPlugin\Form\Type\LocalizedEntryType">
+            <argument>%akki_sylius_localization_plugin.model.localized_entry.class%</argument>
+            <argument>%akki_sylius_localization_plugin.model.localized_entry.validation_groups%</argument>
+            <tag name="form.type"/>
+        </service>
+
+        <service id="akki_sylius_localization_plugin.form.localized_entry_translation_type" class="Akki\SyliusLocalizationPlugin\Form\Type\LocalizedEntryTranslationType">
+            <argument>%akki_sylius_localization_plugin.model.localized_entry_translation.class%</argument>
+            <argument>%akki_sylius_localization_plugin.model.localized_entry_translation.validation_groups%</argument>
+            <tag name="form.type"/>
+        </service>
+
+    </services>
+</container>

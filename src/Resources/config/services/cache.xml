@@ -1,0 +1,9 @@
+<container xmlns="http://symfony.com/schema/dic/services">
+    <services>
+
+       <service id="Akki\SyliusLocalizationPlugin\Cache\Resolver\CacheKeyResolver" class="Akki\SyliusLocalizationPlugin\Cache\Resolver\CacheKeyResolver">
+       </service>
+
+        <service id="Akki\SyliusLocalizationPlugin\Cache\Resolver\CacheKeyResolverInterface" alias="Akki\SyliusLocalizationPlugin\Cache\Resolver\CacheKeyResolver" />
+    </services>
+</container>

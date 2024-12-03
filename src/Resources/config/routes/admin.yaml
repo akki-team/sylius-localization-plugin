@@ -1,0 +1,16 @@
+akki_sylius_localization_plugin_admin_localized_entries:
+  resource: |
+    alias: akki_sylius_localization_plugin.localized_entry
+    section: admin
+    templates: "@SyliusAdmin\\Crud"
+    redirect: update
+    grid: akki_sylius_localization_plugin.localized_entry
+    permission: true
+    vars:
+      all:
+        subheader: akki_sylius_localization_plugin.ui.configure_translations_available_in_your_store
+        templates:
+          form: "@AkkiSyliusLocalizationPlugin/LocalizedEntry/_form.html.twig"
+      index:
+        icon: share alternate
+  type: sylius.resource
