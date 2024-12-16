@@ -24,4 +24,16 @@ class LocalizedEntryRepository extends EntityRepository implements LocalizedEntr
     {
         return $this->findOneBy(['channel' => $channel, 'key' => $key, 'domain' => $domain]);
     }
+
+    public function getDomains(ChannelInterface $channel): array
+    {
+        return $this->createQueryBuilder('o')
+            ->select('DISTINCT o.domain')
+            ->where('o.channel = :channel')
+            ->setParameter('channel', $channel)
+            ->getQuery()
+            ->getSingleColumnResult();
+    }
+
+
 }

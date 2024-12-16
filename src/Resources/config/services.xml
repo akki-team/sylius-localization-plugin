@@ -5,6 +5,7 @@
         <import resource="services/events.xml"/>
         <import resource="services/factory.xml"/>
         <import resource="services/form.xml"/>
+        <import resource="services/grid.xml"/>
         <import resource="services/translations.xml"/>
     </imports>
 </container>

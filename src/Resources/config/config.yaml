@@ -16,38 +16,3 @@ sylius_resource:
           model: Akki\SyliusLocalizationPlugin\Entity\Localization\LocalizedEntryTranslation
           interface: Akki\SyliusLocalizationPlugin\Entity\Localization\LocalizedEntryTranslationInterface
           form: Akki\SyliusLocalizationPlugin\Form\Type\LocalizedEntryTranslationType
-
-sylius_grid:
-  grids:
-    akki_sylius_localization_plugin.localized_entry:
-      driver:
-        name: doctrine/orm
-        options:
-          class: "%akki_sylius_localization_plugin.model.localized_entry.class%"
-          repository:
-            method: createListQueryBuilder
-            arguments: [ "%locale%" ]
-      fields:
-        value:
-          type: string
-          label: akki_sylius_localization_plugin.ui.value
-          sortable: translation.value
-        key:
-          type: string
-          label: akki_sylius_localization_plugin.ui.key
-          sortable: ~
-        domain:
-          label: akki_sylius_localization_plugin.ui.domain
-          type: string
-      filters:
-        search:
-          type: string
-          label: sylius.ui.search
-          options:
-            fields: [key, translation.value]
-      actions:
-        item:
-          update:
-            type: update
-          delete:
-            type: delete

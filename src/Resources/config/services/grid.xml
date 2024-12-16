@@ -1,0 +1,12 @@
+<container xmlns="http://symfony.com/schema/dic/services">
+    <services>
+
+        <service id="Akki\SyliusLocalizationPlugin\Grid\LocalizedEntryGrid" class="Akki\SyliusLocalizationPlugin\Grid\LocalizedEntryGrid">
+            <argument type="service" id="sylius.context.locale"/>
+            <argument type="service" id="sylius.context.channel.composite"/>
+            <argument type="service" id="akki_sylius_localization_plugin.repository.localized_entry"/>
+            <tag name="sylius.grid"/>
+        </service>
+
+    </services>
+</container>
