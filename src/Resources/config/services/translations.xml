@@ -5,7 +5,7 @@
                  decorates="Sylius\Bundle\ThemeBundle\Translation\ThemeAwareTranslator" decoration-priority="128">
             <argument type="service" id="Akki\SyliusLocalizationPlugin\Translation\DatabaseTranslator.inner"/>
             <argument type="service" id="Akki\SyliusLocalizationPlugin\Translation\MessageProvider"/>
-            <argument type="service" id="sylius.context.channel.composite"/>
+            <argument type="service" id="sylius.context.channel"/>
             <argument type="service" id="translator.formatter"/>
         </service>
 
