@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.2](https://github.com/akki-team/sylius-localization-plugin/tree/1.1.2) (2025-05-25)
+
+- fix: Correction d'un bug où le database translator n'utilise pas la bonne clé de service ce qui peut faire perdre une potentielle décoration
+
 ## [1.1.1](https://github.com/akki-team/sylius-localization-plugin/tree/1.1.1) (2025-01-29)
 
 - Fixed a bug where data was always overwritten during the translation import if it already existed.
