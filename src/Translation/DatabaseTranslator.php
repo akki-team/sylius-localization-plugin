@@ -27,7 +27,7 @@ final class DatabaseTranslator implements TranslatorInterface, TranslatorBagInte
     {
     }
 
-    public function trans(string $id, array $parameters = [], ?string $domain = null, ?string $locale = null)
+    public function trans(string $id, array $parameters = [], ?string $domain = null, ?string $locale = null): string
     {
         $domain ??= 'messages';
         $locale ??= $this->getLocale();
@@ -62,7 +62,7 @@ final class DatabaseTranslator implements TranslatorInterface, TranslatorBagInte
         return $this->messageFormatter->format($message, $locale, $parameters);
     }
 
-    public function setLocale(string $locale)
+    public function setLocale(string $locale): void
     {
         $this->decorated->setLocale($locale);
     }
@@ -77,7 +77,7 @@ final class DatabaseTranslator implements TranslatorInterface, TranslatorBagInte
         return $this->decorated->getCatalogues();
     }
 
-    public function getLocale()
+    public function getLocale(): string
     {
         return $this->decorated->getLocale();
     }
