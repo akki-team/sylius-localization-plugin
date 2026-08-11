@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.0] - 2026-08-11
+### :sparkles: New Features
+- [`84217cb`](https://github.com/akki-team/sylius-localization-plugin/commit/84217cb1d843126d7c58e327be36003e706ea7ea) - compatibilité Sylius 2 / PHP 8.2 *(commit by [@severine-akki](https://github.com/severine-akki))*
+
+
 ## [1.1.2](https://github.com/akki-team/sylius-localization-plugin/tree/1.1.2) (2025-05-25)
 
 - fix: Correction d'un bug où le database translator n'utilise pas la bonne clé de service ce qui peut faire perdre une potentielle décoration
@@ -17,3 +22,4 @@
 - Start plugin with 1.0.0 version
 - Allow Sylius developer to manage translation in back-office.
 - Use cache system to improve performance.
+[2.0.0]: https://github.com/akki-team/sylius-localization-plugin/compare/1.1.2...2.0.0
