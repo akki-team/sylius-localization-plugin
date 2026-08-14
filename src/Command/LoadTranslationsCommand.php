@@ -145,6 +145,11 @@ class LoadTranslationsCommand extends Command
                 $this->entityManager->persist($localizedEntry);
             }
 
+            // Sans locale courante/fallback, getTranslation() retombe sur un fallback null
+            // (ArrayCollection::get(null) -> TypeError). On cible explicitement la locale importée.
+            $localizedEntry->setCurrentLocale($locale->getCode());
+            $localizedEntry->setFallbackLocale($locale->getCode());
+
             $localizedEntryTranslation = $localizedEntry->getTranslation($locale->getCode());
 
             if (false === $localizedEntryTranslation instanceof LocalizedEntryTranslationInterface) {
