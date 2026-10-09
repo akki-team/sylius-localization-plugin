@@ -14,7 +14,7 @@ use Symfony\Component\Translation\Translator;
 
 final class DatabaseTranslatorTest extends TestCase
 {
-    public function testChannelIsResolvedOnEveryCall(): void
+    public function testChannelIsResolvedOnceUntilReset(): void
     {
         $channels = [];
 
@@ -25,7 +25,7 @@ final class DatabaseTranslatorTest extends TestCase
         }
 
         $channelContext = $this->createMock(ChannelContextInterface::class);
-        $channelContext->method('getChannel')->willReturnOnConsecutiveCalls(...$channels);
+        $channelContext->expects(self::exactly(2))->method('getChannel')->willReturnOnConsecutiveCalls(...$channels);
 
         $messageProvider = new class() implements MessageProviderInterface {
             public function getMessage(string $id, string $domain, string $locale, string $channelCode): ?string
@@ -37,6 +37,10 @@ final class DatabaseTranslatorTest extends TestCase
         $translator = new DatabaseTranslator(new Translator('fr_FR'), $messageProvider, $channelContext, new MessageFormatter());
 
         self::assertSame('Titre fls', $translator->trans('app.ui.title'));
-        self::assertSame('Titre dsn', $translator->trans('app.ui.title'), 'Un worker qui change de canal ne reste pas sur le premier.');
+        self::assertSame('Titre fls', $translator->trans('app.ui.subtitle'), 'Hors requête HTTP, le contexte de canal peut interroger la base : il est appelé une fois.');
+
+        $translator->reset();
+
+        self::assertSame('Titre dsn', $translator->trans('app.ui.title'), 'Entre deux messages Messenger, le canal est résolu à nouveau.');
     }
 }

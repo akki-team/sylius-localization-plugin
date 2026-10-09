@@ -11,10 +11,13 @@ use Symfony\Component\Translation\Formatter\MessageFormatterInterface;
 use Symfony\Component\Translation\MessageCatalogueInterface;
 use Symfony\Component\Translation\TranslatorBagInterface;
 use Symfony\Contracts\Translation\LocaleAwareInterface;
+use Symfony\Contracts\Service\ResetInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-final class DatabaseTranslator implements TranslatorInterface, TranslatorBagInterface, LocaleAwareInterface
+final class DatabaseTranslator implements TranslatorInterface, TranslatorBagInterface, LocaleAwareInterface, ResetInterface
 {
+    private ?string $channelCode = null;
+
     public function __construct(
         private readonly TranslatorInterface&TranslatorBagInterface&LocaleAwareInterface $decorated,
         private readonly MessageProviderInterface                                        $messageProvider,
@@ -33,10 +36,10 @@ final class DatabaseTranslator implements TranslatorInterface, TranslatorBagInte
 
         try {
 
-            // Résolu à chaque appel, sans mémoire : un worker (Messenger, commande) traite des
-            // messages de canaux différents. Le contexte de canal de Sylius met déjà le canal en
-            // cache le temps d'une requête HTTP.
-            $channelCode = $this->channelContext->getChannel()->getCode();
+            // Mémorisé jusqu'au prochain kernel.reset : hors requête HTTP (CLI, Messenger), le
+            // contexte de canal de Sylius n'a pas de cache et peut interroger la base à chaque
+            // appel. Le reset entre deux messages Messenger évite de garder le canal du premier.
+            $channelCode = $this->channelCode ??= $this->channelContext->getChannel()->getCode();
 
             $message = $this->messageProvider->getMessage($id, $domain, $locale, $channelCode);
 
@@ -78,6 +81,11 @@ final class DatabaseTranslator implements TranslatorInterface, TranslatorBagInte
     public function getLocale()
     {
         return $this->decorated->getLocale();
+    }
+
+    public function reset(): void
+    {
+        $this->channelCode = null;
     }
 
     public function __call(string $method, array $arguments)
