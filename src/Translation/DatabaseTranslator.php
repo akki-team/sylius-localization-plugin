@@ -6,17 +6,17 @@ namespace Akki\SyliusLocalizationPlugin\Translation;
 
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Channel\Context\ChannelNotFoundException;
-use Sylius\Component\Core\Model\ChannelInterface;
 use Symfony\Component\Translation\Formatter\IntlFormatterInterface;
 use Symfony\Component\Translation\Formatter\MessageFormatterInterface;
 use Symfony\Component\Translation\MessageCatalogueInterface;
 use Symfony\Component\Translation\TranslatorBagInterface;
 use Symfony\Contracts\Translation\LocaleAwareInterface;
+use Symfony\Contracts\Service\ResetInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-final class DatabaseTranslator implements TranslatorInterface, TranslatorBagInterface, LocaleAwareInterface
+final class DatabaseTranslator implements TranslatorInterface, TranslatorBagInterface, LocaleAwareInterface, ResetInterface
 {
-    private ?ChannelInterface $channel = null;
+    private ?string $channelCode = null;
 
     public function __construct(
         private readonly TranslatorInterface&TranslatorBagInterface&LocaleAwareInterface $decorated,
@@ -27,7 +27,7 @@ final class DatabaseTranslator implements TranslatorInterface, TranslatorBagInte
     {
     }
 
-    public function trans(string $id, array $parameters = [], ?string $domain = null, ?string $locale = null)
+    public function trans(string $id, array $parameters = [], ?string $domain = null, ?string $locale = null): string
     {
         $domain ??= 'messages';
         $locale ??= $this->getLocale();
@@ -36,14 +36,15 @@ final class DatabaseTranslator implements TranslatorInterface, TranslatorBagInte
 
         try {
 
-            if (null === $this->channel) {
-                $this->channel = $this->channelContext->getChannel();
-            }
+            // Mémorisé jusqu'au prochain kernel.reset : hors requête HTTP (CLI, Messenger), le
+            // contexte de canal de Sylius n'a pas de cache et peut interroger la base à chaque
+            // appel. Le reset entre deux messages Messenger évite de garder le canal du premier.
+            $channelCode = $this->channelCode ??= $this->channelContext->getChannel()->getCode();
 
-            $message = $this->messageProvider->getMessage($id, $domain, $locale, $this->channel->getCode());
+            $message = $this->messageProvider->getMessage($id, $domain, $locale, $channelCode);
 
             if (null === $message && true === $this->messageFormatter instanceof IntlFormatterInterface) {
-                $message = $this->messageProvider->getMessage($id, $domain . MessageCatalogueInterface::INTL_DOMAIN_SUFFIX, $locale, $this->channel->getCode());
+                $message = $this->messageProvider->getMessage($id, $domain . MessageCatalogueInterface::INTL_DOMAIN_SUFFIX, $locale, $channelCode);
                 $intlMessage = true;
             }
 
@@ -62,7 +63,7 @@ final class DatabaseTranslator implements TranslatorInterface, TranslatorBagInte
         return $this->messageFormatter->format($message, $locale, $parameters);
     }
 
-    public function setLocale(string $locale)
+    public function setLocale(string $locale): void
     {
         $this->decorated->setLocale($locale);
     }
@@ -77,9 +78,14 @@ final class DatabaseTranslator implements TranslatorInterface, TranslatorBagInte
         return $this->decorated->getCatalogues();
     }
 
-    public function getLocale()
+    public function getLocale(): string
     {
         return $this->decorated->getLocale();
+    }
+
+    public function reset(): void
+    {
+        $this->channelCode = null;
     }
 
     public function __call(string $method, array $arguments)
