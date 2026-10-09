@@ -10,6 +10,7 @@
             <argument type="service" id="akki_sylius_localization_plugin.factory.localized_entry"/>
             <argument type="service" id="doctrine.orm.entity_manager"/>
             <argument>%akki_sylius_localization_plugin.model.localized_entry.class%</argument>
+            <argument type="service" id="Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheInvalidator"/>
             <tag name="console.command"/>
         </service>
 

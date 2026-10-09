@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Akki\SyliusLocalizationPlugin\Command;
 
+use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheInvalidator;
 use Akki\SyliusLocalizationPlugin\Entity\Localization\LocalizedEntryInterface;
 use Akki\SyliusLocalizationPlugin\Entity\Localization\LocalizedEntryTranslationInterface;
 use Akki\SyliusLocalizationPlugin\Factory\Localization\LocalizedEntryFactoryInterface;
@@ -23,6 +24,9 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class LoadTranslationsCommand extends Command
 {
+    /** @var list<array{id: string, domain: string, locale: string, channelCode: string}> */
+    private array $messagesToInvalidate = [];
+
     public function __construct(
         private readonly TranslatorInterface&TranslatorBagInterface $translator,
         private readonly RepositoryInterface                        $localeRepository,
@@ -31,7 +35,7 @@ class LoadTranslationsCommand extends Command
         private readonly LocalizedEntryFactoryInterface             $localizedEntryFactory,
         private readonly EntityManagerInterface                     $entityManager,
         private readonly string                                     $localizedEntryClass,
-
+        private readonly ?LocalizationCacheInvalidator              $localizationCacheInvalidator = null,
     )
     {
         parent::__construct();
@@ -59,8 +63,13 @@ class LoadTranslationsCommand extends Command
             }
         }
 
+        $this->messagesToInvalidate = [];
+
         if (true === $force) {
             $io->title('Clearing translations from database.');
+            // Le DELETE DQL ne passe pas par le vidage du cache : on garde la liste pour vider
+            // ensuite les traductions effacées (dont les valeurs saisies en BO).
+            $this->messagesToInvalidate = $this->findAllMessages();
             $this->entityManager->createQuery(sprintf('DELETE FROM %s e', $this->localizedEntryClass))->execute();
             $io->success('Done');
         }
@@ -117,9 +126,25 @@ class LoadTranslationsCommand extends Command
             }
         }
 
+        if (null !== $this->localizationCacheInvalidator && [] !== $this->messagesToInvalidate) {
+            $io->title('Clearing imported translations from cache.');
+            $this->localizationCacheInvalidator->invalidate($this->messagesToInvalidate);
+            $io->success(sprintf('%d translations cleared.', \count($this->messagesToInvalidate)));
+        }
+
         $io->success('Import is now completed.');
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * @return list<array{id: string, domain: string, locale: string, channelCode: string}>
+     */
+    private function findAllMessages(): array
+    {
+        return $this->entityManager
+            ->createQuery(sprintf('SELECT e.key AS id, e.domain AS domain, t.locale AS locale, c.code AS channelCode FROM %s e JOIN e.channel c JOIN e.translations t', $this->localizedEntryClass))
+            ->getArrayResult();
     }
 
     private function importMessages(array $messages, string $defaultDomain, ChannelInterface $channel, LocaleInterface $locale): void
@@ -163,6 +188,9 @@ class LoadTranslationsCommand extends Command
             $message = preg_replace('/[\x{1F600}-\x{1F64F}\x{1F300}-\x{1F5FF}\x{1F680}-\x{1F6FF}\x{2600}-\x{26FF}\x{2700}-\x{27BF}\x{1F900}-\x{1F9FF}]/u', '', (string)$message);
 
             $localizedEntryTranslation->setValue($message);
+
+            // Une absence a pu être mise en cache avant l'import : on la vide à la fin.
+            $this->messagesToInvalidate[] = ['id' => (string)$key, 'domain' => $domain, 'locale' => $locale->getCode(), 'channelCode' => $channel->getCode()];
 
             $this->entityManager->flush();
             $this->entityManager->clear();
