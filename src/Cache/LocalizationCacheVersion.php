@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Akki\SyliusLocalizationPlugin\Cache;
 
 use Psr\Cache\CacheItemPoolInterface;
+use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
 /**
@@ -23,8 +24,11 @@ final class LocalizationCacheVersion implements ResetInterface
 
     private bool $unavailable = false;
 
+    // Invalidations faites par ce processus : la mémoire de LocalCacheMessageProvider s'y aligne.
+    private int $generation = 0;
+
     public function __construct(
-        private readonly CacheItemPoolInterface $cache,
+        private readonly CacheItemPoolInterface|CacheInterface $cache,
     )
     {
     }
@@ -37,6 +41,10 @@ final class LocalizationCacheVersion implements ResetInterface
     public function current(): ?string
     {
         if (null === $this->current && false === $this->unavailable) {
+            if (false === $this->cache instanceof CacheItemPoolInterface) {
+                return $this->current = (string)$this->cache->get(self::CACHE_KEY, fn(): string => $this->generate());
+            }
+
             $item = $this->cache->getItem(self::CACHE_KEY);
 
             if (true === $item->isHit()) {
@@ -53,8 +61,23 @@ final class LocalizationCacheVersion implements ResetInterface
 
     public function bump(): void
     {
-        $this->cache->save($this->cache->getItem(self::CACHE_KEY)->set($this->generate()));
+        ++$this->generation;
+
+        if (false === $this->cache instanceof CacheItemPoolInterface) {
+            $this->cache->delete(self::CACHE_KEY);
+        } elseif (false === $this->cache->save($this->cache->getItem(self::CACHE_KEY)->set($this->generate()))) {
+            // Sans nouveau jeton, les copies locales resteraient valides jusqu'à leur expiration.
+            // Sans jeton du tout, current() ne pourra pas en recréer un tant que l'écriture échoue,
+            // et les copies locales sont ignorées.
+            $this->cache->deleteItem(self::CACHE_KEY);
+        }
+
         $this->reset();
+    }
+
+    public function getGeneration(): int
+    {
+        return $this->generation;
     }
 
     public function reset(): void

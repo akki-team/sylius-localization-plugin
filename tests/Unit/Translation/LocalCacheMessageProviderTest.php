@@ -56,6 +56,19 @@ final class LocalCacheMessageProviderTest extends TestCase
         self::assertSame(2, $inner->calls);
     }
 
+    public function testInvalidationInTheSameProcessEmptiesTheRequestMemory(): void
+    {
+        $version = new LocalizationCacheVersion(new ArrayAdapter());
+        $inner = $this->createInner(['app.ui.title' => 'Titre']);
+        $provider = new LocalCacheMessageProvider($inner, new CacheKeyResolver(), $version);
+
+        $provider->getMessage('app.ui.title', 'messages', 'fr_FR', 'fls');
+        $version->bump();
+        $provider->getMessage('app.ui.title', 'messages', 'fr_FR', 'fls');
+
+        self::assertSame(2, $inner->calls, 'Une traduction modifiée puis relue dans le même processus est relue.');
+    }
+
     public function testApcuCopyIsSharedUntilTheTokenChanges(): void
     {
         if (false === \function_exists('apcu_enabled') || false === apcu_enabled()) {
