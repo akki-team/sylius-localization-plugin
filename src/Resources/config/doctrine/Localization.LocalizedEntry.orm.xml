@@ -9,6 +9,11 @@
     <mapped-superclass name="Akki\SyliusLocalizationPlugin\Entity\Localization\LocalizedEntry"
                        table="akki_localization_entry">
 
+        <indexes>
+            <!-- Recherche d'une traduction (MessageProvider, import) : canal, clé et domaine. -->
+            <index name="akki_localization_entry_lookup_idx" columns="channel_id,entry_key,entry_domain"/>
+        </indexes>
+
         <id name="id" column="id" type="integer">
             <generator strategy="AUTO"/>
         </id>
