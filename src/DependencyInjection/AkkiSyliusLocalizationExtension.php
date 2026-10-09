@@ -11,6 +11,7 @@ use Akki\SyliusLocalizationPlugin\Cache\LocalizedEntryCacheClearer;
 use Akki\SyliusLocalizationPlugin\Cache\LocalizedEntryCacheClearerInterface;
 use Akki\SyliusLocalizationPlugin\Cache\Resolver\CacheKeyResolverInterface;
 use Akki\SyliusLocalizationPlugin\Translation\CacheMessageProvider;
+use Akki\SyliusLocalizationPlugin\Translation\LocalCacheMessageProvider;
 use Akki\SyliusLocalizationPlugin\Translation\MessageProvider;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -63,6 +64,25 @@ final class AkkiSyliusLocalizationExtension extends Extension
 
         $container->setDefinition(LocalizedEntryCacheClearer::class, $definition);
         $container->setAlias(LocalizedEntryCacheClearerInterface::class, LocalizedEntryCacheClearer::class);
+
+
+        if (true === $config['local_cache']['enabled']) {
+            $definition = new Definition(LocalCacheMessageProvider::class, [
+                new Reference('.inner'),
+                new Reference(CacheKeyResolverInterface::class),
+                new Reference(LocalizationCacheVersion::class),
+                $config['local_cache']['apcu']['enabled'],
+                $config['local_cache']['apcu']['ttl'],
+                // Plusieurs applications peuvent partager le même APCu (même pool PHP-FPM).
+                sprintf('akki_localization.%s.', substr(hash('sha256', $container->getParameter('kernel.project_dir') . '|' . $container->getParameter('kernel.environment')), 0, 8)),
+            ]);
+
+            // Priorité inférieure à celle de CacheMessageProvider (256) : la copie locale est
+            // consultée avant le cache partagé.
+            $definition->setDecoratedService(MessageProvider::class, priority: 128);
+            $definition->addTag('kernel.reset', ['method' => 'reset']);
+            $container->setDefinition(LocalCacheMessageProvider::class, $definition);
+        }
     }
 
 }
