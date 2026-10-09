@@ -12,6 +12,11 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          # Le CHANGELOG est commité sur main : on part de main, quelle que soit la branche du
+          # tag (1.x, 2.0...). Partir du commit tagué fait échouer le passage sur main dès que
+          # son CHANGELOG diffère de celui de main (cas des tags 1.2.0 et 2.1.0).
+          ref: main
 
       - name: Update CHANGELOG
         id: changelog
