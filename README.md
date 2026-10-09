@@ -57,14 +57,52 @@ $ php bin/console akki:translations:load
 
 ## Configuration
 
-By default, ```@cache.app``` is used to put translations in cache. You can override with other an other cache :
+All options, with their default values:
 
 ```yaml
-# config/akki_sylius_localization_plugin.yaml
+# config/packages/akki_sylius_localization_plugin.yaml
 
-akki_sylius_localization_plugin:
-  cache: my_new_cache
+akki_sylius_localization:
+    # Shared cache of the database translations (Redis for instance in a multi-server setup).
+    cache: cache.app
+    local_cache:
+        # Keeps each translation in memory for the rest of the request (reset between two
+        # Messenger messages), in front of the shared cache.
+        enabled: true
+        apcu:
+            # Also keeps a copy in the APCu of each server. Changes made through the plugin
+            # (admin edition, deletion, import, akki:translations:load) are visible on every
+            # server from the next request: the copies are keyed by a version token stored in
+            # the shared cache. Ignored when APCu is missing or disabled (CLI by default).
+            enabled: false
+            # Lifetime (seconds) of the APCu copies: bounds the delay of an invalidation made
+            # outside of the plugin (manual deletion of a shared cache entry).
+            ttl: 300
 ```
+
+With Redis as shared cache, every displayed translation costs up to 2 network round trips
+without a local cache. On a page with a few hundred texts, `local_cache.apcu` removes most of
+the cache traffic. Size APCu accordingly (`apc.shm_size`).
+
+After a translation was changed outside of the plugin (direct SQL), clear the shared cache pool,
+or only the version token to refresh the APCu copies:
+
+```bash
+$ php bin/console cache:pool:clear <your_cache_pool>
+$ php bin/console cache:pool:delete <your_cache_pool> akki_localization_version
+```
+
+## Upgrade
+
+### To 1.2 / 2.1
+
+- A lookup index is added on `akki_localization_entry (channel_id, entry_key, entry_domain)`:
+  generate and run a migration (`doctrine:migrations:diff`, then `doctrine:migrations:migrate`).
+- The cache of a translation whose id contains a reserved character (`{}()/\@:`, for instance
+  the `validators` messages) is now cleared; deleting a translation in the admin clears it too.
+- `akki:translations:load` now clears the imported translations from the cache, and with
+  `--force`, every erased translation.
+- `local_cache.enabled` is on by default (request memory only); `local_cache.apcu` is opt-in.
 
 ## ⚠️ Warning 
 
