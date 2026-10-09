@@ -14,17 +14,24 @@ use Symfony\Contracts\Service\ResetInterface;
  * Chaque |trans interroge le cache partagé jusqu'à 2 fois (domaine messages, puis
  * messages+intl-icu), sans mémoire : avec Redis, c'est un aller-retour réseau par texte affiché.
  * Deux niveaux :
- * - mémoire de la requête, vidée par kernel.reset (entre deux messages Messenger) ;
+ * - mémoire de la requête, vidée par kernel.reset (entre deux messages Messenger), dès qu'une
+ *   traduction est invalidée dans ce processus, et au plus tard après MEMO_MAX_AGE secondes
+ *   (processus longs sans kernel.reset) ;
  * - APCu du serveur, en option : ses clés portent le jeton de LocalizationCacheVersion, qui
  *   change à chaque invalidation, et une durée de vie courte borne les invalidations faites
  *   hors du plugin (suppression manuelle d'une entrée du cache partagé).
  */
 final class LocalCacheMessageProvider implements MessageProviderInterface, ResetInterface
 {
-    // Borne pour les commandes longues, dont la mémoire n'est vidée qu'entre deux messages.
     private const MEMO_MAX_ENTRIES = 5000;
 
+    private const MEMO_MAX_AGE = 10;
+
     private array $memo = [];
+
+    private int $memoStartedAt = 0;
+
+    private int $memoGeneration = 0;
 
     private ?bool $apcuAvailable = null;
 
@@ -43,12 +50,17 @@ final class LocalCacheMessageProvider implements MessageProviderInterface, Reset
     {
         $key = $this->cacheKeyResolver->getKey($id, $domain, $locale, $channelCode);
 
+        if ([] !== $this->memo && true === $this->isMemoStale()) {
+            $this->memo = [];
+        }
+
         if (true === \array_key_exists($key, $this->memo)) {
             return $this->memo[$key];
         }
 
-        if (\count($this->memo) >= self::MEMO_MAX_ENTRIES) {
-            $this->memo = [];
+        if ([] === $this->memo) {
+            $this->memoStartedAt = time();
+            $this->memoGeneration = $this->version->getGeneration();
         }
 
         return $this->memo[$key] = $this->fetch($key, $id, $domain, $locale, $channelCode);
@@ -57,6 +69,13 @@ final class LocalCacheMessageProvider implements MessageProviderInterface, Reset
     public function reset(): void
     {
         $this->memo = [];
+    }
+
+    private function isMemoStale(): bool
+    {
+        return \count($this->memo) >= self::MEMO_MAX_ENTRIES
+            || $this->memoGeneration !== $this->version->getGeneration()
+            || time() - $this->memoStartedAt >= self::MEMO_MAX_AGE;
     }
 
     private function fetch(string $key, string $id, string $domain, string $locale, string $channelCode): ?string
