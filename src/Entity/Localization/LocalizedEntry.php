@@ -69,7 +69,7 @@ class LocalizedEntry implements LocalizedEntryInterface
         $this->channel = $channel;
     }
 
-    public function getValue(string $locale = null): ?string
+    public function getValue(?string $locale = null): ?string
     {
         return $this->getTranslation($locale)->getValue();
     }
