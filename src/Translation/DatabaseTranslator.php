@@ -6,7 +6,6 @@ namespace Akki\SyliusLocalizationPlugin\Translation;
 
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Channel\Context\ChannelNotFoundException;
-use Sylius\Component\Core\Model\ChannelInterface;
 use Symfony\Component\Translation\Formatter\IntlFormatterInterface;
 use Symfony\Component\Translation\Formatter\MessageFormatterInterface;
 use Symfony\Component\Translation\MessageCatalogueInterface;
@@ -16,8 +15,6 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class DatabaseTranslator implements TranslatorInterface, TranslatorBagInterface, LocaleAwareInterface
 {
-    private ?ChannelInterface $channel = null;
-
     public function __construct(
         private readonly TranslatorInterface&TranslatorBagInterface&LocaleAwareInterface $decorated,
         private readonly MessageProviderInterface                                        $messageProvider,
@@ -36,14 +33,15 @@ final class DatabaseTranslator implements TranslatorInterface, TranslatorBagInte
 
         try {
 
-            if (null === $this->channel) {
-                $this->channel = $this->channelContext->getChannel();
-            }
+            // Résolu à chaque appel, sans mémoire : un worker (Messenger, commande) traite des
+            // messages de canaux différents. Le contexte de canal de Sylius met déjà le canal en
+            // cache le temps d'une requête HTTP.
+            $channelCode = $this->channelContext->getChannel()->getCode();
 
-            $message = $this->messageProvider->getMessage($id, $domain, $locale, $this->channel->getCode());
+            $message = $this->messageProvider->getMessage($id, $domain, $locale, $channelCode);
 
             if (null === $message && true === $this->messageFormatter instanceof IntlFormatterInterface) {
-                $message = $this->messageProvider->getMessage($id, $domain . MessageCatalogueInterface::INTL_DOMAIN_SUFFIX, $locale, $this->channel->getCode());
+                $message = $this->messageProvider->getMessage($id, $domain . MessageCatalogueInterface::INTL_DOMAIN_SUFFIX, $locale, $channelCode);
                 $intlMessage = true;
             }
 
