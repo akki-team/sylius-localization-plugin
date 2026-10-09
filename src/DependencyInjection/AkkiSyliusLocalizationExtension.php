@@ -60,8 +60,10 @@ final class AkkiSyliusLocalizationExtension extends Extension
 
         $definition = new Definition(LocalizedEntryCacheClearer::class, [
             new Reference(LocalizationCacheInvalidator::class),
+            new Reference('sylius.repository.locale'),
         ]);
 
+        $definition->addTag('kernel.reset', ['method' => 'reset']);
         $container->setDefinition(LocalizedEntryCacheClearer::class, $definition);
         $container->setAlias(LocalizedEntryCacheClearerInterface::class, LocalizedEntryCacheClearer::class);
 

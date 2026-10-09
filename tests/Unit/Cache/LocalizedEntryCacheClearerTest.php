@@ -10,8 +10,10 @@ use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheVersion;
 use Akki\SyliusLocalizationPlugin\Cache\LocalizedEntryCacheClearer;
 use Akki\SyliusLocalizationPlugin\Cache\Resolver\CacheKeyResolver;
 use Akki\SyliusLocalizationPlugin\Entity\Localization\LocalizedEntry;
+use Doctrine\Persistence\ObjectRepository;
 use PHPUnit\Framework\TestCase;
 use Sylius\Component\Channel\Model\ChannelInterface;
+use Sylius\Component\Locale\Model\LocaleInterface;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 final class LocalizedEntryCacheClearerTest extends TestCase
@@ -41,6 +43,27 @@ final class LocalizedEntryCacheClearerTest extends TestCase
         self::assertFalse($this->pool->hasItem('fls.en_US.messages.app.ui.title'));
         self::assertTrue($this->pool->hasItem('dsn.fr_FR.messages.app.ui.title'), 'Les autres canaux ne sont pas touchés.');
         self::assertNotSame($before, $this->version->current(), 'Le jeton des copies locales change.');
+    }
+
+    public function testShopLocalesWithoutTranslationRowAreCleared(): void
+    {
+        $locales = [];
+
+        foreach (['fr_FR', 'en_US'] as $code) {
+            $locale = $this->createMock(LocaleInterface::class);
+            $locale->method('getCode')->willReturn($code);
+            $locales[] = $locale;
+        }
+
+        $localeRepository = $this->createMock(ObjectRepository::class);
+        $localeRepository->method('findAll')->willReturn($locales);
+        $clearer = new LocalizedEntryCacheClearer(new LocalizationCacheInvalidator(new CacheKeyResolver(), $this->pool, $this->version), $localeRepository);
+        $entry = $this->createEntry('fls', 'app.ui.title', 'messages', ['fr_FR' => 'Titre']);
+        $this->warm('fls.fr_FR.messages.app.ui.title', 'fls.en_US.messages.app.ui.title');
+
+        $clearer->clear($entry);
+
+        self::assertFalse($this->pool->hasItem('fls.en_US.messages.app.ui.title'), 'en_US servait la valeur de repli fr_FR.');
     }
 
     public function testKeyWithReservedCharactersIsClearedWithoutException(): void
