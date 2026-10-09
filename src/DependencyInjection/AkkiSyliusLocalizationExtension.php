@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Akki\SyliusLocalizationPlugin\DependencyInjection;
 
+use Akki\SyliusLocalizationPlugin\Cache\CacheKeySanitizer;
+use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheInvalidator;
+use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheVersion;
 use Akki\SyliusLocalizationPlugin\Cache\LocalizedEntryCacheClearer;
 use Akki\SyliusLocalizationPlugin\Cache\LocalizedEntryCacheClearerInterface;
 use Akki\SyliusLocalizationPlugin\Cache\Resolver\CacheKeyResolverInterface;
@@ -25,20 +28,37 @@ final class AkkiSyliusLocalizationExtension extends Extension
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.xml');
 
+        $container->setDefinition(CacheKeySanitizer::class, new Definition(CacheKeySanitizer::class));
 
         $definition = new Definition(CacheMessageProvider::class, [
             new Reference('.inner'),
             new Reference(CacheKeyResolverInterface::class),
-            new Reference($config['cache'])
+            new Reference($config['cache']),
+            new Reference(CacheKeySanitizer::class),
         ]);
 
         $definition->setDecoratedService(MessageProvider::class, priority: 256);
         $container->setDefinition(CacheMessageProvider::class, $definition);
 
 
-        $definition = new Definition(LocalizedEntryCacheClearer::class, [
+        $definition = new Definition(LocalizationCacheVersion::class, [
+            new Reference($config['cache']),
+        ]);
+
+        $definition->addTag('kernel.reset', ['method' => 'reset']);
+        $container->setDefinition(LocalizationCacheVersion::class, $definition);
+
+
+        $container->setDefinition(LocalizationCacheInvalidator::class, new Definition(LocalizationCacheInvalidator::class, [
             new Reference(CacheKeyResolverInterface::class),
-            new Reference($config['cache'])
+            new Reference($config['cache']),
+            new Reference(LocalizationCacheVersion::class),
+            new Reference(CacheKeySanitizer::class),
+        ]));
+
+
+        $definition = new Definition(LocalizedEntryCacheClearer::class, [
+            new Reference(LocalizationCacheInvalidator::class),
         ]);
 
         $container->setDefinition(LocalizedEntryCacheClearer::class, $definition);

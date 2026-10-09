@@ -9,6 +9,7 @@
             <argument type="service" id="Akki\SyliusLocalizationPlugin\Cache\LocalizedEntryCacheClearerInterface"/>
             <tag name="kernel.event_listener" event="akki_sylius_localization_plugin.localized_entry.post_create"/>
             <tag name="kernel.event_listener" event="akki_sylius_localization_plugin.localized_entry.post_update"/>
+            <tag name="kernel.event_listener" event="akki_sylius_localization_plugin.localized_entry.post_delete"/>
         </service>
 
     </services>
