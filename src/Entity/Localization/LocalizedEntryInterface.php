@@ -19,7 +19,7 @@ interface LocalizedEntryInterface extends ResourceInterface, TranslatableInterfa
 
     public function setDomain(?string $domain): static;
 
-    public function getValue(string $locale = null): ?string;
+    public function getValue(?string $locale = null): ?string;
 
     public function setValue(?string $value, ?string $locale = null): static;
 }
