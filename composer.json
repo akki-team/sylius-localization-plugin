@@ -10,9 +10,17 @@
     "php": "^8.2",
     "sylius/sylius": "^2.0"
   },
+  "require-dev": {
+    "phpunit/phpunit": "^9.6 || ^10.5"
+  },
   "autoload": {
     "psr-4": {
       "Akki\\SyliusLocalizationPlugin\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Akki\\SyliusLocalizationPlugin\\Tests\\": "tests/"
     }
   },
   "authors": [
