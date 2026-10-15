@@ -19,8 +19,7 @@ return static function (ContainerConfigurator $container): void {
             service(MessageProvider::class),
             service('sylius.context.channel'),
             service('translator.formatter'),
-        ])
-        ->tag('kernel.reset', ['method' => 'reset']);
+        ]);
 
     $services->set(MessageProvider::class)
         ->args([
