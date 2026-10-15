@@ -45,6 +45,31 @@ final class LocalizedEntryCacheClearerTest extends TestCase
         self::assertNotSame($before, $this->version->current(), 'Le jeton des copies locales change.');
     }
 
+    public function testClearManyChangesTheTokenOnce(): void
+    {
+        $entries = [
+            $this->createEntry('fls', 'app.ui.title', 'messages', ['fr_FR' => 'Titre']),
+            $this->createEntry('dsn', 'app.ui.subtitle', 'messages', ['fr_FR' => 'Sous-titre']),
+        ];
+        $this->warm('fls.fr_FR.messages.app.ui.title', 'dsn.fr_FR.messages.app.ui.subtitle');
+        $generation = $this->version->getGeneration();
+
+        $this->clearer->clearMany($entries);
+
+        self::assertFalse($this->pool->hasItem('fls.fr_FR.messages.app.ui.title'));
+        self::assertFalse($this->pool->hasItem('dsn.fr_FR.messages.app.ui.subtitle'));
+        self::assertSame($generation + 1, $this->version->getGeneration(), 'Un seul changement de jeton pour tout le lot.');
+    }
+
+    public function testClearManyWithoutEntryKeepsTheToken(): void
+    {
+        $generation = $this->version->getGeneration();
+
+        $this->clearer->clearMany([]);
+
+        self::assertSame($generation, $this->version->getGeneration());
+    }
+
     public function testShopLocalesWithoutTranslationRowAreCleared(): void
     {
         $locales = [];
