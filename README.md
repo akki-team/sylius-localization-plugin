@@ -67,10 +67,10 @@ akki_sylius_localization:
     cache: cache.app
     local_cache:
         # Keeps each translation in memory for the rest of the request (reset between two
-        # Messenger messages), in front of the shared cache.
-        enabled: true
+        # Messenger messages), in front of the shared cache. Required by apcu.
+        enabled: false
         apcu:
-            # Also keeps a copy in the APCu of each server. Changes made through the plugin
+            # Also keeps a copy in the APCu of each server (local_cache.enabled must be true). Changes made through the plugin
             # (admin edition, deletion, import, akki:translations:load) are visible on every
             # server from the next request: the copies are keyed by a version token stored in
             # the shared cache. Ignored when APCu is missing or disabled (CLI by default).
@@ -110,6 +110,8 @@ $ php bin/console cache:pool:delete <your_cache_pool> akki_localization_version
 - `LocalizationCacheVersion` and `LocalizationCacheInvalidator` are injected through
   `LocalizationCacheVersionInterface` and `LocalizationCacheInvalidatorInterface`: decorate or
   replace them through these service ids.
+- `local_cache.enabled` is now off by default: set it to `true` to keep the request memory.
+  `local_cache.apcu` is ignored without it.
 
 ### To 1.2 / 2.1
 
@@ -122,7 +124,7 @@ $ php bin/console cache:pool:delete <your_cache_pool> akki_localization_version
   and the request memory is reset by `kernel.reset` (between two Messenger messages).
 - `akki:translations:load` now clears the imported translations from the cache, and with
   `--force`, every erased translation.
-- `local_cache.enabled` is on by default (request memory only); `local_cache.apcu` is opt-in.
+- `local_cache` (request memory, APCu copies) is opt-in.
 
 ## ⚠️ Warning 
 
