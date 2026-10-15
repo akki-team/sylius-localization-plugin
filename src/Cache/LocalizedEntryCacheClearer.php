@@ -26,6 +26,21 @@ final class LocalizedEntryCacheClearer implements LocalizedEntryCacheClearerInte
         $this->localizationCacheInvalidator->invalidate($this->getMessages($localizedEntry));
     }
 
+    public function clearMany(iterable $localizedEntries): void
+    {
+        $messages = [];
+        $found = false;
+
+        foreach ($localizedEntries as $localizedEntry) {
+            $found = true;
+            $messages = [...$messages, ...$this->getMessages($localizedEntry)];
+        }
+
+        if (true === $found) {
+            $this->localizationCacheInvalidator->invalidate($messages);
+        }
+    }
+
     public function reset(): void
     {
         $this->shopLocaleCodes = null;
