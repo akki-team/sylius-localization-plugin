@@ -15,6 +15,7 @@ use Akki\SyliusLocalizationPlugin\Translation\CacheMessageProvider;
 use Akki\SyliusLocalizationPlugin\Translation\LocalCacheMessageProvider;
 use Akki\SyliusLocalizationPlugin\Translation\MessageProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
@@ -59,9 +60,11 @@ final class AkkiSyliusLocalizationExtensionTest extends TestCase
         self::assertSame('localization.cache', (string)$container->getDefinition(CacheMessageProvider::class)->getArgument(2));
     }
 
-    public function testApcuIsIgnoredWithoutLocalCache(): void
+    public function testApcuRequiresLocalCache(): void
     {
-        self::assertFalse($this->load([['local_cache' => ['apcu' => ['enabled' => true]]]])->hasDefinition(LocalCacheMessageProvider::class));
+        $this->expectException(InvalidConfigurationException::class);
+
+        $this->load([['local_cache' => ['apcu' => ['enabled' => true]]]]);
     }
 
     private function load(array $configs): ContainerBuilder
