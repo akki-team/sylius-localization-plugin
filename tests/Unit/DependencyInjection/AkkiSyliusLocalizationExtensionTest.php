@@ -9,7 +9,6 @@ use Akki\SyliusLocalizationPlugin\Cache\LocalizedEntryCacheClearer;
 use Akki\SyliusLocalizationPlugin\Cache\LocalizedEntryCacheClearerInterface;
 use Akki\SyliusLocalizationPlugin\DependencyInjection\AkkiSyliusLocalizationExtension;
 use Akki\SyliusLocalizationPlugin\Translation\CacheMessageProvider;
-use Akki\SyliusLocalizationPlugin\Translation\DatabaseTranslator;
 use Akki\SyliusLocalizationPlugin\Translation\LocalCacheMessageProvider;
 use Akki\SyliusLocalizationPlugin\Translation\MessageProvider;
 use PHPUnit\Framework\TestCase;
@@ -31,7 +30,7 @@ final class AkkiSyliusLocalizationExtensionTest extends TestCase
         self::assertSame(LocalizedEntryCacheClearer::class, (string)$container->getAlias(LocalizedEntryCacheClearerInterface::class));
         self::assertSame('cache.app', (string)$container->getDefinition(LocalizationCacheVersion::class)->getArgument(0));
 
-        foreach ([LocalCacheMessageProvider::class, LocalizationCacheVersion::class, LocalizedEntryCacheClearer::class, DatabaseTranslator::class] as $id) {
+        foreach ([LocalCacheMessageProvider::class, LocalizationCacheVersion::class, LocalizedEntryCacheClearer::class] as $id) {
             self::assertTrue($container->getDefinition($id)->hasTag('kernel.reset'), $id . ' doit être remis à zéro entre deux messages.');
         }
     }
