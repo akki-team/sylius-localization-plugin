@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Akki\SyliusLocalizationPlugin\Command;
 
-use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheInvalidator;
+use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheInvalidatorInterface;
 use Akki\SyliusLocalizationPlugin\Entity\Localization\LocalizedEntryInterface;
 use Akki\SyliusLocalizationPlugin\Entity\Localization\LocalizedEntryTranslationInterface;
 use Akki\SyliusLocalizationPlugin\Factory\Localization\LocalizedEntryFactoryInterface;
@@ -24,12 +24,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class LoadTranslationsCommand extends Command
 {
-    /**
-     * Entrées à vider du cache en fin de commande, pour toutes les locales : une locale sans
-     * ligne de traduction est mise en cache avec la valeur de la locale de repli.
-     *
-     * @var array<string, array{id: string, domain: string, channelCode: string}>
-     */
+    /** @var array<string, array{id: string, domain: string, channelCode: string}> */
     private array $entriesToInvalidate = [];
 
     /** @var list<string> */
@@ -43,7 +38,7 @@ class LoadTranslationsCommand extends Command
         private readonly LocalizedEntryFactoryInterface             $localizedEntryFactory,
         private readonly EntityManagerInterface                     $entityManager,
         private readonly string                                     $localizedEntryClass,
-        private readonly ?LocalizationCacheInvalidator              $localizationCacheInvalidator = null,
+        private readonly ?LocalizationCacheInvalidatorInterface     $localizationCacheInvalidator = null,
     )
     {
         parent::__construct();
@@ -77,9 +72,7 @@ class LoadTranslationsCommand extends Command
         try {
             if (true === $force) {
                 $io->title('Clearing translations from database.');
-                // Le DELETE DQL ne passe pas par le vidage du cache : on garde la liste pour vider
-                // ensuite les traductions effacées (dont les valeurs saisies en BO), même si
-                // l'import échoue.
+                // Le DELETE DQL ne vide pas le cache : les entrées effacées sont relevées avant.
                 $this->collectAllEntries();
                 $this->entityManager->createQuery(sprintf('DELETE FROM %s e', $this->localizedEntryClass))->execute();
                 $io->success('Done');
@@ -242,7 +235,6 @@ class LoadTranslationsCommand extends Command
 
             $localizedEntryTranslation->setValue($message);
 
-            // Une absence a pu être mise en cache avant l'import : on la vide à la fin.
             $this->addEntryToInvalidate((string)$key, $domain, $channel->getCode());
 
             $this->entityManager->flush();

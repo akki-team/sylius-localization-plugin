@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Akki\SyliusLocalizationPlugin\Tests\Unit\DependencyInjection;
 
+use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheInvalidator;
+use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheInvalidatorInterface;
 use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheVersion;
+use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheVersionInterface;
 use Akki\SyliusLocalizationPlugin\Cache\LocalizedEntryCacheClearer;
 use Akki\SyliusLocalizationPlugin\Cache\LocalizedEntryCacheClearerInterface;
 use Akki\SyliusLocalizationPlugin\DependencyInjection\AkkiSyliusLocalizationExtension;
@@ -29,6 +32,8 @@ final class AkkiSyliusLocalizationExtensionTest extends TestCase
         self::assertFalse($container->getDefinition(LocalCacheMessageProvider::class)->getArgument(3), 'APCu est opt-in.');
         self::assertSame(LocalizedEntryCacheClearer::class, (string)$container->getAlias(LocalizedEntryCacheClearerInterface::class));
         self::assertSame('cache.app', (string)$container->getDefinition(LocalizationCacheVersion::class)->getArgument(0));
+        self::assertSame(LocalizationCacheVersion::class, (string)$container->getAlias(LocalizationCacheVersionInterface::class));
+        self::assertSame(LocalizationCacheInvalidator::class, (string)$container->getAlias(LocalizationCacheInvalidatorInterface::class));
 
         foreach ([LocalCacheMessageProvider::class, LocalizationCacheVersion::class, LocalizedEntryCacheClearer::class] as $id) {
             self::assertTrue($container->getDefinition($id)->hasTag('kernel.reset'), $id . ' doit être remis à zéro entre deux messages.');

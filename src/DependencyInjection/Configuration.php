@@ -11,7 +11,6 @@ final class Configuration implements ConfigurationInterface
 {
     public function getConfigTreeBuilder(): TreeBuilder
     {
-        // Nom de la clé de configuration : alias de l'extension, pas nom du plugin.
         $treeBuilder = new TreeBuilder('akki_sylius_localization');
         $root = $treeBuilder->getRootNode();
 
