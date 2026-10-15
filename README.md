@@ -111,7 +111,7 @@ $ php bin/console cache:pool:delete <your_cache_pool> akki_localization_version
   `LocalizationCacheVersionInterface` and `LocalizationCacheInvalidatorInterface`: decorate or
   replace them through these service ids.
 - `local_cache.enabled` is now off by default: set it to `true` to keep the request memory.
-  `local_cache.apcu` is ignored without it.
+  `local_cache.apcu` requires it: enabling APCu alone is a configuration error.
 - `LocalizedEntryCacheClearerInterface::clearMany()` clears several entries with a single change
   of the version token (imports). A custom implementation of the interface must add it.
 
