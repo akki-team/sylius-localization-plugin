@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.3.0] - 2026-10-15
+### :sparkles: New Features
+- [`2d24053`](https://github.com/akki-team/sylius-localization-plugin/commit/2d24053ccd29c8c9f4515aa0d3b0b802ed15cd59) - cache local des traductions (mémoire de requête, APCu en option) *(commit by [@sebastien-akki](https://github.com/sebastien-akki))*
+- [`01a200d`](https://github.com/akki-team/sylius-localization-plugin/commit/01a200db333479f4ba7b9cc6c3f2b3780bd17570) - vidage de plusieurs traductions en un seul changement de jeton *(commit by [@sebastien-akki](https://github.com/sebastien-akki))*
+
+### :bug: Bug Fixes
+- [`451f3d6`](https://github.com/akki-team/sylius-localization-plugin/commit/451f3d67b3632f02cf02b046fdcf8a0acd43d914) - vider le cache d'une traduction avec la clé utilisée à l'écriture, y compris à la suppression *(commit by [@sebastien-akki](https://github.com/sebastien-akki))*
+- [`e5751fb`](https://github.com/akki-team/sylius-localization-plugin/commit/e5751fb6a4cf27c6542ecf744e968a940a2936ea) - akki:translations:load vide du cache les traductions importées ou effacées *(commit by [@sebastien-akki](https://github.com/sebastien-akki))*
+- [`2e48346`](https://github.com/akki-team/sylius-localization-plugin/commit/2e4834617951cf5e581caf0e9332bee4ee5a54a2) - DatabaseTranslator résout le canal à chaque appel *(commit by [@sebastien-akki](https://github.com/sebastien-akki))*
+- [`503b325`](https://github.com/akki-team/sylius-localization-plugin/commit/503b3256d58be03a65106cfb89aed67405df4082) - type nullable explicite sur getValue() (dépréciation PHP 8.4) *(commit by [@sebastien-akki](https://github.com/sebastien-akki))*
+- [`ec6e0e6`](https://github.com/akki-team/sylius-localization-plugin/commit/ec6e0e6169ee80125a2b6927b75d9fa950ca1e0a) - DatabaseTranslator garde le canal jusqu'au prochain kernel.reset *(commit by [@sebastien-akki](https://github.com/sebastien-akki))*
+- [`4542ebd`](https://github.com/akki-team/sylius-localization-plugin/commit/4542ebdd05e06df2796f2c0e484dc0dca5cb60db) - mémoire de requête bornée et jeton de version plus robuste *(commit by [@sebastien-akki](https://github.com/sebastien-akki))*
+- [`80412f4`](https://github.com/akki-team/sylius-localization-plugin/commit/80412f46ad1f10d3fb71b2e5d79b58ca99b49b73) - vider toutes les locales de la boutique, même si l'import échoue *(commit by [@sebastien-akki](https://github.com/sebastien-akki))*
+- [`f024f46`](https://github.com/akki-team/sylius-localization-plugin/commit/f024f46962848c9877885040866284951fdb6ff0) - DatabaseTranslator résout de nouveau le canal à chaque appel *(commit by [@sebastien-akki](https://github.com/sebastien-akki))*
+- [`7e33c5c`](https://github.com/akki-team/sylius-localization-plugin/commit/7e33c5ca2f32ebe8edd022f327b23a32a9427c23) - cache local des traductions désactivé par défaut *(commit by [@sebastien-akki](https://github.com/sebastien-akki))*
+- [`98a1b16`](https://github.com/akki-team/sylius-localization-plugin/commit/98a1b16054483a854107c69e656123cb2fa51242) - local_cache.apcu sans local_cache.enabled est une erreur de configuration *(commit by [@sebastien-akki](https://github.com/sebastien-akki))*
+
+### :zap: Performance Improvements
+- [`5e8a40e`](https://github.com/akki-team/sylius-localization-plugin/commit/5e8a40eb438e07c5cf3ce4734938e1946560fe27) - index de recherche sur akki_localization_entry (canal, clé, domaine) *(commit by [@sebastien-akki](https://github.com/sebastien-akki))*
+
+### :recycle: Refactors
+- [`cfd6dfb`](https://github.com/akki-team/sylius-localization-plugin/commit/cfd6dfb83278e1972faeb5acbd9cadba2a1c65a6) - interfaces pour le jeton de version et l'invalidation du cache *(commit by [@sebastien-akki](https://github.com/sebastien-akki))*
+
+### :white_check_mark: Tests
+- [`c216a34`](https://github.com/akki-team/sylius-localization-plugin/commit/c216a34285985e74d96a08ae2b9cf2f4ac82b01b) - tests unitaires du cache et du traducteur *(commit by [@sebastien-akki](https://github.com/sebastien-akki))*
+
+
 ## [2.1.0] - 2026-10-09
 ### :sparkles: New Features
 - [`37d2005`](https://github.com/akki-team/sylius-localization-plugin/commit/37d2005fca97cecbd58de7c9e1b3b3f8893fd1ec) - cache local des traductions (mémoire de requête, APCu en option) *(commit by [@sebastien-akki](https://github.com/sebastien-akki))*
@@ -71,3 +98,4 @@
 - Use cache system to improve performance.
 [2.0.0]: https://github.com/akki-team/sylius-localization-plugin/compare/1.1.2...2.0.0
 [2.0.1]: https://github.com/akki-team/sylius-localization-plugin/compare/2.0.0...2.0.1
+[1.3.0]: https://github.com/akki-team/sylius-localization-plugin/compare/2.1.0...1.3.0
