@@ -100,7 +100,7 @@ $ php bin/console cache:pool:delete <your_cache_pool> akki_localization_version
 
 ## Upgrade
 
-### To 1.2.1 / 2.1.1
+### To 1.3 / 2.2
 
 - `DatabaseTranslator` resolves the channel on every translation again (1.2.0 / 2.1.0 kept it
   until `kernel.reset`): a process that switches channels, such as a command looping over
