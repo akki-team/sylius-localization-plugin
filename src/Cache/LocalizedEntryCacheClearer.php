@@ -15,8 +15,8 @@ final class LocalizedEntryCacheClearer implements LocalizedEntryCacheClearerInte
     private ?array $shopLocaleCodes = null;
 
     public function __construct(
-        private readonly LocalizationCacheInvalidator $localizationCacheInvalidator,
-        private readonly ?ObjectRepository            $localeRepository = null,
+        private readonly LocalizationCacheInvalidatorInterface $localizationCacheInvalidator,
+        private readonly ?ObjectRepository                     $localeRepository = null,
     )
     {
     }
@@ -44,9 +44,7 @@ final class LocalizedEntryCacheClearer implements LocalizedEntryCacheClearerInte
             return [];
         }
 
-        // Les locales de l'entrée, et celles de la boutique : pour une locale sans ligne de
-        // traduction, MessageProvider met en cache la valeur de la locale de repli sous la clé
-        // de la locale demandée.
+        // Une locale sans traduction est mise en cache avec la valeur de la locale de repli.
         $locales = $this->getShopLocaleCodes();
 
         foreach ($localizedEntry->getTranslations() as $translation) {

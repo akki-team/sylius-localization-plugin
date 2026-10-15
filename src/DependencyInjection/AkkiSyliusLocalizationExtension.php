@@ -6,7 +6,9 @@ namespace Akki\SyliusLocalizationPlugin\DependencyInjection;
 
 use Akki\SyliusLocalizationPlugin\Cache\CacheKeySanitizer;
 use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheInvalidator;
+use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheInvalidatorInterface;
 use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheVersion;
+use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheVersionInterface;
 use Akki\SyliusLocalizationPlugin\Cache\LocalizedEntryCacheClearer;
 use Akki\SyliusLocalizationPlugin\Cache\LocalizedEntryCacheClearerInterface;
 use Akki\SyliusLocalizationPlugin\Cache\Resolver\CacheKeyResolverInterface;
@@ -48,18 +50,20 @@ final class AkkiSyliusLocalizationExtension extends Extension
 
         $definition->addTag('kernel.reset', ['method' => 'reset']);
         $container->setDefinition(LocalizationCacheVersion::class, $definition);
+        $container->setAlias(LocalizationCacheVersionInterface::class, LocalizationCacheVersion::class);
 
 
         $container->setDefinition(LocalizationCacheInvalidator::class, new Definition(LocalizationCacheInvalidator::class, [
             new Reference(CacheKeyResolverInterface::class),
             new Reference($config['cache']),
-            new Reference(LocalizationCacheVersion::class),
+            new Reference(LocalizationCacheVersionInterface::class),
             new Reference(CacheKeySanitizer::class),
         ]));
+        $container->setAlias(LocalizationCacheInvalidatorInterface::class, LocalizationCacheInvalidator::class);
 
 
         $definition = new Definition(LocalizedEntryCacheClearer::class, [
-            new Reference(LocalizationCacheInvalidator::class),
+            new Reference(LocalizationCacheInvalidatorInterface::class),
             new Reference('sylius.repository.locale'),
         ]);
 
@@ -72,15 +76,13 @@ final class AkkiSyliusLocalizationExtension extends Extension
             $definition = new Definition(LocalCacheMessageProvider::class, [
                 new Reference('.inner'),
                 new Reference(CacheKeyResolverInterface::class),
-                new Reference(LocalizationCacheVersion::class),
+                new Reference(LocalizationCacheVersionInterface::class),
                 $config['local_cache']['apcu']['enabled'],
                 $config['local_cache']['apcu']['ttl'],
-                // Plusieurs applications peuvent partager le même APCu (même pool PHP-FPM).
+                // Plusieurs applications peuvent partager le même APCu.
                 sprintf('akki_localization.%s.', substr(hash('sha256', $container->getParameter('kernel.project_dir') . '|' . $container->getParameter('kernel.environment')), 0, 8)),
             ]);
 
-            // Priorité inférieure à celle de CacheMessageProvider (256) : la copie locale est
-            // consultée avant le cache partagé.
             $definition->setDecoratedService(MessageProvider::class, priority: 128);
             $definition->addTag('kernel.reset', ['method' => 'reset']);
             $container->setDefinition(LocalCacheMessageProvider::class, $definition);

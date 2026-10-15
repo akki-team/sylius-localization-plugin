@@ -8,19 +8,15 @@ use Akki\SyliusLocalizationPlugin\Cache\Resolver\CacheKeyResolverInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 
-/**
- * Vide des traductions du cache partagé, puis change le jeton de version pour rendre caduques
- * les copies locales (APCu) de tous les serveurs.
- */
-final class LocalizationCacheInvalidator
+final class LocalizationCacheInvalidator implements LocalizationCacheInvalidatorInterface
 {
     private const DELETE_BATCH_SIZE = 500;
 
     public function __construct(
-        private readonly CacheKeyResolverInterface $cacheKeyResolver,
-        private readonly CacheInterface            $cache,
-        private readonly LocalizationCacheVersion  $version,
-        private readonly CacheKeySanitizer         $cacheKeySanitizer = new CacheKeySanitizer(),
+        private readonly CacheKeyResolverInterface         $cacheKeyResolver,
+        private readonly CacheInterface                    $cache,
+        private readonly LocalizationCacheVersionInterface $version,
+        private readonly CacheKeySanitizer                 $cacheKeySanitizer = new CacheKeySanitizer(),
     )
     {
     }

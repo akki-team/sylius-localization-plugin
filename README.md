@@ -107,6 +107,9 @@ $ php bin/console cache:pool:delete <your_cache_pool> akki_localization_version
   channels with a settable channel context, translates with the current channel. Outside an
   HTTP request, the channel context is called for each translated message: if it queries the
   database, make it cheap, for instance by setting the channel explicitly.
+- `LocalizationCacheVersion` and `LocalizationCacheInvalidator` are injected through
+  `LocalizationCacheVersionInterface` and `LocalizationCacheInvalidatorInterface`: decorate or
+  replace them through these service ids.
 
 ### To 1.2 / 2.1
 
