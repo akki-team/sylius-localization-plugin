@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace Akki\SyliusLocalizationPlugin\Tests\Unit\DependencyInjection;
 
+use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheInvalidator;
+use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheInvalidatorInterface;
 use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheVersion;
+use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheVersionInterface;
 use Akki\SyliusLocalizationPlugin\Cache\LocalizedEntryCacheClearer;
 use Akki\SyliusLocalizationPlugin\Cache\LocalizedEntryCacheClearerInterface;
 use Akki\SyliusLocalizationPlugin\DependencyInjection\AkkiSyliusLocalizationExtension;
 use Akki\SyliusLocalizationPlugin\Translation\CacheMessageProvider;
-use Akki\SyliusLocalizationPlugin\Translation\DatabaseTranslator;
 use Akki\SyliusLocalizationPlugin\Translation\LocalCacheMessageProvider;
 use Akki\SyliusLocalizationPlugin\Translation\MessageProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
@@ -26,19 +29,29 @@ final class AkkiSyliusLocalizationExtensionTest extends TestCase
         $container = $this->load([]);
 
         self::assertSame([MessageProvider::class, null, 256], $container->getDefinition(CacheMessageProvider::class)->getDecoratedService());
-        self::assertSame([MessageProvider::class, null, 128], $container->getDefinition(LocalCacheMessageProvider::class)->getDecoratedService());
-        self::assertFalse($container->getDefinition(LocalCacheMessageProvider::class)->getArgument(3), 'APCu est opt-in.');
+        self::assertFalse($container->hasDefinition(LocalCacheMessageProvider::class), 'Le cache local est opt-in.');
         self::assertSame(LocalizedEntryCacheClearer::class, (string)$container->getAlias(LocalizedEntryCacheClearerInterface::class));
         self::assertSame('cache.app', (string)$container->getDefinition(LocalizationCacheVersion::class)->getArgument(0));
+        self::assertSame(LocalizationCacheVersion::class, (string)$container->getAlias(LocalizationCacheVersionInterface::class));
+        self::assertSame(LocalizationCacheInvalidator::class, (string)$container->getAlias(LocalizationCacheInvalidatorInterface::class));
 
-        foreach ([LocalCacheMessageProvider::class, LocalizationCacheVersion::class, LocalizedEntryCacheClearer::class, DatabaseTranslator::class] as $id) {
+        foreach ([LocalizationCacheVersion::class, LocalizedEntryCacheClearer::class] as $id) {
             self::assertTrue($container->getDefinition($id)->hasTag('kernel.reset'), $id . ' doit être remis à zéro entre deux messages.');
         }
     }
 
+    public function testLocalCacheEnabled(): void
+    {
+        $definition = $this->load([['local_cache' => ['enabled' => true]]])->getDefinition(LocalCacheMessageProvider::class);
+
+        self::assertSame([MessageProvider::class, null, 128], $definition->getDecoratedService());
+        self::assertFalse($definition->getArgument(3), 'APCu est opt-in.');
+        self::assertTrue($definition->hasTag('kernel.reset'));
+    }
+
     public function testApcuAndCustomPool(): void
     {
-        $container = $this->load([['cache' => 'localization.cache', 'local_cache' => ['apcu' => ['enabled' => true, 'ttl' => 60]]]]);
+        $container = $this->load([['cache' => 'localization.cache', 'local_cache' => ['enabled' => true, 'apcu' => ['enabled' => true, 'ttl' => 60]]]]);
         $definition = $container->getDefinition(LocalCacheMessageProvider::class);
 
         self::assertTrue($definition->getArgument(3));
@@ -47,9 +60,11 @@ final class AkkiSyliusLocalizationExtensionTest extends TestCase
         self::assertSame('localization.cache', (string)$container->getDefinition(CacheMessageProvider::class)->getArgument(2));
     }
 
-    public function testLocalCacheCanBeDisabled(): void
+    public function testApcuRequiresLocalCache(): void
     {
-        self::assertFalse($this->load([['local_cache' => ['enabled' => false]]])->hasDefinition(LocalCacheMessageProvider::class));
+        $this->expectException(InvalidConfigurationException::class);
+
+        $this->load([['local_cache' => ['apcu' => ['enabled' => true]]]]);
     }
 
     private function load(array $configs): ContainerBuilder

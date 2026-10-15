@@ -4,23 +4,10 @@ declare(strict_types=1);
 
 namespace Akki\SyliusLocalizationPlugin\Translation;
 
-use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheVersion;
+use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheVersionInterface;
 use Akki\SyliusLocalizationPlugin\Cache\Resolver\CacheKeyResolverInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
-/**
- * Copies locales devant le cache partagé des traductions (CacheMessageProvider).
- *
- * Chaque |trans interroge le cache partagé jusqu'à 2 fois (domaine messages, puis
- * messages+intl-icu), sans mémoire : avec Redis, c'est un aller-retour réseau par texte affiché.
- * Deux niveaux :
- * - mémoire de la requête, vidée par kernel.reset (entre deux messages Messenger), dès qu'une
- *   traduction est invalidée dans ce processus, et au plus tard après MEMO_MAX_AGE secondes
- *   (processus longs sans kernel.reset) ;
- * - APCu du serveur, en option : ses clés portent le jeton de LocalizationCacheVersion, qui
- *   change à chaque invalidation, et une durée de vie courte borne les invalidations faites
- *   hors du plugin (suppression manuelle d'une entrée du cache partagé).
- */
 final class LocalCacheMessageProvider implements MessageProviderInterface, ResetInterface
 {
     private const MEMO_MAX_ENTRIES = 5000;
@@ -36,12 +23,12 @@ final class LocalCacheMessageProvider implements MessageProviderInterface, Reset
     private ?bool $apcuAvailable = null;
 
     public function __construct(
-        private readonly MessageProviderInterface  $decorated,
-        private readonly CacheKeyResolverInterface $cacheKeyResolver,
-        private readonly LocalizationCacheVersion  $version,
-        private readonly bool                      $apcuEnabled = false,
-        private readonly int                       $apcuTtl = 300,
-        private readonly string                    $apcuPrefix = 'akki_localization.',
+        private readonly MessageProviderInterface          $decorated,
+        private readonly CacheKeyResolverInterface         $cacheKeyResolver,
+        private readonly LocalizationCacheVersionInterface $version,
+        private readonly bool                              $apcuEnabled = false,
+        private readonly int                               $apcuTtl = 300,
+        private readonly string                            $apcuPrefix = 'akki_localization.',
     )
     {
     }
@@ -103,10 +90,7 @@ final class LocalCacheMessageProvider implements MessageProviderInterface, Reset
         return $message;
     }
 
-    /**
-     * En CLI, apc.enable_cli vaut 0 par défaut : apcu_store échouerait sans erreur (et
-     * l'ApcuAdapter de Symfony ne le détecte pas, il ne teste que apc.enabled).
-     */
+    // apc.enable_cli vaut 0 par défaut : en CLI, apcu_store échoue sans erreur.
     private function isApcuAvailable(): bool
     {
         return $this->apcuAvailable ??= true === $this->apcuEnabled && \function_exists('apcu_enabled') && apcu_enabled();

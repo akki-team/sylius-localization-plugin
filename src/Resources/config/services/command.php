@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 
-use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheInvalidator;
+use Akki\SyliusLocalizationPlugin\Cache\LocalizationCacheInvalidatorInterface;
 use Akki\SyliusLocalizationPlugin\Command\LoadTranslationsCommand;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
@@ -21,7 +21,7 @@ return static function (ContainerConfigurator $container): void {
             service('akki_sylius_localization_plugin.factory.localized_entry'),
             service('doctrine.orm.entity_manager'),
             param('akki_sylius_localization_plugin.model.localized_entry.class'),
-            service(LocalizationCacheInvalidator::class),
+            service(LocalizationCacheInvalidatorInterface::class),
         ])
         ->tag('console.command');
 };

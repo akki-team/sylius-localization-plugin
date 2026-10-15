@@ -11,7 +11,6 @@ final class Configuration implements ConfigurationInterface
 {
     public function getConfigTreeBuilder(): TreeBuilder
     {
-        // Nom de la clé de configuration : alias de l'extension, pas nom du plugin.
         $treeBuilder = new TreeBuilder('akki_sylius_localization');
         $root = $treeBuilder->getRootNode();
 
@@ -22,10 +21,14 @@ final class Configuration implements ConfigurationInterface
                 ->end()
                 ->arrayNode('local_cache')
                     ->addDefaultsIfNotSet()
+                    ->validate()
+                        ->ifTrue(static fn(array $localCache): bool => true === $localCache['apcu']['enabled'] && false === $localCache['enabled'])
+                        ->thenInvalid('local_cache.apcu.enabled requiert local_cache.enabled: true.')
+                    ->end()
                     ->children()
                         ->booleanNode('enabled')
-                            ->info('Mémoire des traductions le temps d\'une requête, devant le cache partagé.')
-                            ->defaultTrue()
+                            ->info('Mémoire des traductions le temps d\'une requête, devant le cache partagé. Requis pour apcu.')
+                            ->defaultFalse()
                         ->end()
                         ->arrayNode('apcu')
                             ->addDefaultsIfNotSet()

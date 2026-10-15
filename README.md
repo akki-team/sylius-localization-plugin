@@ -67,10 +67,10 @@ akki_sylius_localization:
     cache: cache.app
     local_cache:
         # Keeps each translation in memory for the rest of the request (reset between two
-        # Messenger messages), in front of the shared cache.
-        enabled: true
+        # Messenger messages), in front of the shared cache. Required by apcu.
+        enabled: false
         apcu:
-            # Also keeps a copy in the APCu of each server. Changes made through the plugin
+            # Also keeps a copy in the APCu of each server (local_cache.enabled must be true). Changes made through the plugin
             # (admin edition, deletion, import, akki:translations:load) are visible on every
             # server from the next request: the copies are keyed by a version token stored in
             # the shared cache. Ignored when APCu is missing or disabled (CLI by default).
@@ -100,6 +100,21 @@ $ php bin/console cache:pool:delete <your_cache_pool> akki_localization_version
 
 ## Upgrade
 
+### To 1.3 / 2.2
+
+- `DatabaseTranslator` resolves the channel on every translation again (1.2.0 / 2.1.0 kept it
+  until `kernel.reset`): a process that switches channels, such as a command looping over
+  channels with a settable channel context, translates with the current channel. Outside an
+  HTTP request, the channel context is called for each translated message: if it queries the
+  database, make it cheap, for instance by setting the channel explicitly.
+- `LocalizationCacheVersion` and `LocalizationCacheInvalidator` are injected through
+  `LocalizationCacheVersionInterface` and `LocalizationCacheInvalidatorInterface`: decorate or
+  replace them through these service ids.
+- `local_cache.enabled` is now off by default: set it to `true` to keep the request memory.
+  `local_cache.apcu` requires it: enabling APCu alone is a configuration error.
+- `LocalizedEntryCacheClearerInterface::clearMany()` clears several entries with a single change
+  of the version token (imports). A custom implementation of the interface must add it.
+
 ### To 1.2 / 2.1
 
 - A lookup index is added on `akki_localization_entry (channel_id, entry_key, entry_domain)`:
@@ -107,11 +122,11 @@ $ php bin/console cache:pool:delete <your_cache_pool> akki_localization_version
 - The cache of a translation whose id contains a reserved character (`{}()/\@:`, for instance
   the `validators` messages) is now cleared; deleting a translation in the admin clears it too,
   and every shop locale is cleared (a locale without translation row caches the fallback value).
-- `DatabaseTranslator` and the request memory are reset by `kernel.reset` (between two Messenger
-  messages): a worker no longer keeps the channel of its first message.
+- `DatabaseTranslator` no longer keeps the channel of the first message for the whole process,
+  and the request memory is reset by `kernel.reset` (between two Messenger messages).
 - `akki:translations:load` now clears the imported translations from the cache, and with
   `--force`, every erased translation.
-- `local_cache.enabled` is on by default (request memory only); `local_cache.apcu` is opt-in.
+- `local_cache` (request memory, APCu copies) is opt-in.
 
 ## ⚠️ Warning 
 
